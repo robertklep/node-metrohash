@@ -23,7 +23,7 @@ Local<Value> Hash(_NAN_METHOD_ARGS, uint64_t len, void (*HashMethod)(const uint8
         return NanError("`data` argument must be String or Buffer");
     }
 
-    // Handle seed value.
+    // Handle seed argument.
     uint32_t seed = 0;
     if (args.Length() >= 2) {
         if (! args[1]->IsNumber()) {
@@ -32,7 +32,7 @@ Local<Value> Hash(_NAN_METHOD_ARGS, uint64_t len, void (*HashMethod)(const uint8
         seed = args[1]->ToInt32()->Value();
     }
 
-    // Convert data argument.
+    // Handle data argument.
     std::string data;
     if (_is_buffer(args[0])) {
         Local<Object> msg = args[0]->ToObject();
@@ -46,8 +46,8 @@ Local<Value> Hash(_NAN_METHOD_ARGS, uint64_t len, void (*HashMethod)(const uint8
     HashMethod(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length(), seed, out);
 
     // Return as buffer.
-    std::string s(reinterpret_cast<char const *>(out), len);
-    return _to_buffer(s);
+    std::string hash(reinterpret_cast<char const *>(out), len);
+    return _to_buffer(hash);
 }
 
 NAN_METHOD(_metrohash64_1) {
