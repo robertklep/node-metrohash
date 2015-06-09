@@ -5,11 +5,15 @@
   "main": "index.js",
   "gypfile": true,
   "author": "Robert Klep <robert@klep.name>",
-  "repository" : "robertklep/node-metrohash",
+  "repository": "robertklep/node-metrohash",
   "license": "MIT",
   "dependencies": {
     "bindings": "^1.2.1",
     "nan": "^1.8.4",
     "node-gyp": "^2.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "mocha": "^2.2.5"
   }
 }
