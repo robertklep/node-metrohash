@@ -1,6 +1,8 @@
 # node-metrohash
 
 Wrapper around [MetroHash](https://github.com/jandrewrogers/MetroHash).
+ 
+[![Build Status](https://travis-ci.org/robertklep/node-metrohash.svg)](https://travis-ci.org/robertklep/node-metrohash)
 
 ### Installation
 
