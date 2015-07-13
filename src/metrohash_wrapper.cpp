@@ -35,8 +35,7 @@ Local<Value> Hash(_NAN_METHOD_ARGS, uint64_t len, void (*HashMethod)(const uint8
     // Handle data argument.
     std::string data;
     if (_is_buffer(args[0])) {
-        Local<Object> msg = args[0]->ToObject();
-        data = std::string(Buffer::Data(msg), Buffer::Length(msg));
+        data = std::string(Buffer::Data(args[0]), Buffer::Length(args[0]));
     } else {
         data = std::string(*NanUtf8String(args[0]));
     }
