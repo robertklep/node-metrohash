@@ -38,6 +38,9 @@ var hash = new MetroHash64(123);
 // Update using a string as input.
 hash.update('Hello, World!');
 
+// The same as above:
+// hash.update('Hello, ').update('World!');
+
 // Finalize and convert to hex string.
 var digest = hash.digest().toString('hex');
 ```
