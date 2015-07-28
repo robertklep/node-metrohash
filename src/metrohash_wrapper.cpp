@@ -1,3 +1,4 @@
+#include <iostream>
 #include <nan.h>
 #include "metrohash.h"
 
@@ -13,122 +14,156 @@ static inline Local<Object> _to_buffer(std::string s) {
     return NanNewBufferHandle((char *) s.data(), s.size());
 }
 
-// Generic wrapper for all hashing methods.
-Local<Value> Hash(_NAN_METHOD_ARGS, uint64_t len, void (*HashMethod)(const uint8_t *, uint64_t, uint32_t, uint8_t *)) {
-    // Argument validation.
-    if (args.Length() < 1) {
-        return NanError("Wrong number of arguments");
-    }
-    if (! _is_buffer(args[0]) && ! args[0]->IsString()) {
-        return NanError("`data` argument must be String or Buffer");
+static Persistent<FunctionTemplate> constructor64;
+static Persistent<FunctionTemplate> constructor128;
+
+class NodeMetroHash64 : public ObjectWrap {
+    MetroHash64 metro;
+    uint8_t     digest[8];
+    bool        wasFinalized = false;
+
+    explicit NodeMetroHash64(uint64_t seed = 0) {
+        metro.Initialize(seed);
     }
 
-    // Handle seed argument.
-    uint32_t seed = 0;
-    if (args.Length() >= 2) {
-        if (! args[1]->IsNumber()) {
-            return NanError("`seed` argument must be a Number");
+    static NAN_METHOD(New) {
+        NanScope();
+        // TODO: check if argument type makes sense
+        NodeMetroHash64* hasher = new NodeMetroHash64(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
+        hasher->Wrap(args.This());
+        NanReturnValue(args.This());
+    }
+
+    static NAN_METHOD(Update) {
+        NanScope();
+        NodeMetroHash64* self = ObjectWrap::Unwrap<NodeMetroHash64>(args.This());
+
+        // Argument validation.
+        if (args.Length() != 1) {
+            NanThrowTypeError("Missing argument");
+            NanReturnUndefined();
         }
-        seed = args[1]->ToInt32()->Value();
+        if (! _is_buffer(args[0]) && ! args[0]->IsString()) {
+            NanThrowTypeError("`data` argument must be String or Buffer");
+            NanReturnUndefined();
+        }
+
+        // Handle data argument.
+        std::string data;
+        if (_is_buffer(args[0])) {
+            data = std::string(Buffer::Data(args[0]), Buffer::Length(args[0]));
+        } else {
+            data = std::string(*NanUtf8String(args[0]));
+        }
+
+        // Update hash.
+        self->metro.Update(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length());
     }
 
-    // Handle data argument.
-    std::string data;
-    if (_is_buffer(args[0])) {
-        data = std::string(Buffer::Data(args[0]), Buffer::Length(args[0]));
-    } else {
-        data = std::string(*NanUtf8String(args[0]));
+    static NAN_METHOD(Digest) {
+        NanScope();
+        NodeMetroHash64* self = ObjectWrap::Unwrap<NodeMetroHash64>(args.This());
+
+        // Finalize and get the hash value. Make sure we only finalize once.
+        if (! self->wasFinalized) {
+            self->metro.Finalize(self->digest);
+            self->wasFinalized = true;
+        }
+
+        // Return as buffer.
+        std::string hash(reinterpret_cast<char const *>(self->digest), 8);
+        NanReturnValue(_to_buffer(hash));
     }
 
-    // Hash it.
-    uint8_t out[len];
-    HashMethod(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length(), seed, out);
-
-    // Return as buffer.
-    std::string hash(reinterpret_cast<char const *>(out), len);
-    return _to_buffer(hash);
-}
-
-NAN_METHOD(_metrohash64_1) {
-    NanScope();
-    Local<Value> ret = Hash(args, 8, metrohash64_1);
-
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+public:
+    static void Init() {
+        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(NodeMetroHash64::New);
+        NanAssignPersistent(constructor64, tpl);
+        tpl->SetClassName(NanSymbol("MetroHash64"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "update", NodeMetroHash64::Update);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "digest", NodeMetroHash64::Digest);
     }
-}
+};
 
-NAN_METHOD(_metrohash64_2) {
-    NanScope();
-    Local<Value> ret = Hash(args, 8, metrohash64_2);
+class NodeMetroHash128 : public ObjectWrap {
+    MetroHash128 metro;
+    uint8_t     digest[16];
+    bool        wasFinalized = false;
 
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+    explicit NodeMetroHash128(uint64_t seed = 0) {
+        metro.Initialize(seed);
     }
-}
 
-NAN_METHOD(_metrohash128_1) {
-    NanScope();
-    Local<Value> ret = Hash(args, 16, metrohash128_1);
-
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+    static NAN_METHOD(New) {
+        NanScope();
+        // TODO: check if argument type makes sense
+        NodeMetroHash128* hasher = new NodeMetroHash128(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
+        hasher->Wrap(args.This());
+        NanReturnValue(args.This());
     }
-}
 
-NAN_METHOD(_metrohash128_2) {
-    NanScope();
-    Local<Value> ret = Hash(args, 16, metrohash128_2);
+    static NAN_METHOD(Update) {
+        NanScope();
+        NodeMetroHash128* self = ObjectWrap::Unwrap<NodeMetroHash128>(args.This());
 
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+        // Argument validation.
+        if (args.Length() != 1) {
+            NanThrowTypeError("Missing argument");
+            NanReturnUndefined();
+        }
+        if (! _is_buffer(args[0]) && ! args[0]->IsString()) {
+            NanThrowTypeError("`data` argument must be String or Buffer");
+            NanReturnUndefined();
+        }
+
+        // Handle data argument.
+        std::string data;
+        if (_is_buffer(args[0])) {
+            data = std::string(Buffer::Data(args[0]), Buffer::Length(args[0]));
+        } else {
+            data = std::string(*NanUtf8String(args[0]));
+        }
+
+        // Update hash.
+        self->metro.Update(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length());
     }
-}
 
-NAN_METHOD(_metrohash128crc_1) {
-    NanScope();
-    Local<Value> ret = Hash(args, 16, metrohash128crc_1);
+    static NAN_METHOD(Digest) {
+        NanScope();
+        NodeMetroHash128* self = ObjectWrap::Unwrap<NodeMetroHash128>(args.This());
 
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+        // Finalize and get the hash value. Make sure we only finalize once.
+        if (! self->wasFinalized) {
+            self->metro.Finalize(self->digest);
+            self->wasFinalized = true;
+        }
+
+        // Return as buffer.
+        std::string hash(reinterpret_cast<char const *>(self->digest), 16);
+        NanReturnValue(_to_buffer(hash));
     }
-}
 
-NAN_METHOD(_metrohash128crc_2) {
-    NanScope();
-    Local<Value> ret = Hash(args, 16, metrohash128crc_2);
-
-    if (ret->IsNativeError()) {
-        NanThrowTypeError(*NanUtf8String(ret));
-        NanReturnUndefined();
-    } else {
-        NanReturnValue(ret);
+public:
+    static void Init() {
+        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(NodeMetroHash128::New);
+        NanAssignPersistent(constructor128, tpl);
+        tpl->SetClassName(NanSymbol("MetroHash128"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "update", NodeMetroHash128::Update);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "digest", NodeMetroHash128::Digest);
     }
-}
+};
 
 // Addon initialization.
 void InitAll(Handle<Object> exports) {
-    exports->Set(NanNew("metrohash64_1"), NanNew<FunctionTemplate>(_metrohash64_1)->GetFunction());
-    exports->Set(NanNew("metrohash64_2"), NanNew<FunctionTemplate>(_metrohash64_2)->GetFunction());
-    exports->Set(NanNew("metrohash128_1"), NanNew<FunctionTemplate>(_metrohash128_1)->GetFunction());
-    exports->Set(NanNew("metrohash128_2"), NanNew<FunctionTemplate>(_metrohash128_2)->GetFunction());
-    exports->Set(NanNew("metrohash128crc_1"), NanNew<FunctionTemplate>(_metrohash128crc_1)->GetFunction());
-    exports->Set(NanNew("metrohash128crc_2"), NanNew<FunctionTemplate>(_metrohash128crc_2)->GetFunction());
+    NodeMetroHash64::Init();
+    Local<FunctionTemplate> constructor64Handle  = NanNew(constructor64);
+    exports->Set(NanNew("MetroHash64"),  constructor64Handle->GetFunction());
+
+    NodeMetroHash128::Init();
+    Local<FunctionTemplate> constructor128Handle = NanNew(constructor128);
+    exports->Set(NanNew("MetroHash128"), constructor128Handle->GetFunction());
 }
 
 NODE_MODULE(metrohash, InitAll)
