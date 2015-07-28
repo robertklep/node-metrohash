@@ -28,10 +28,17 @@ class NodeMetroHash64 : public ObjectWrap {
 
     static NAN_METHOD(New) {
         NanScope();
-        // TODO: check if argument type makes sense
-        NodeMetroHash64* hasher = new NodeMetroHash64(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
-        hasher->Wrap(args.This());
-        NanReturnValue(args.This());
+        if (args.IsConstructCall()) {
+            // TODO: check if argument type makes sense
+            NodeMetroHash64* hasher = new NodeMetroHash64(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
+            hasher->Wrap(args.This());
+            NanReturnValue(args.This());
+        } else {
+            const int argc = 1;
+            Local<Value> argv[argc] = { args[0] };
+            Local<Function> cons = NanNew<FunctionTemplate>(constructor64)->GetFunction();
+            NanReturnValue(cons->NewInstance(argc, argv));
+        }
     }
 
     static NAN_METHOD(Update) {
@@ -100,10 +107,17 @@ class NodeMetroHash128 : public ObjectWrap {
 
     static NAN_METHOD(New) {
         NanScope();
-        // TODO: check if argument type makes sense
-        NodeMetroHash128* hasher = new NodeMetroHash128(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
-        hasher->Wrap(args.This());
-        NanReturnValue(args.This());
+        if (args.IsConstructCall()) {
+            // TODO: check if argument type makes sense
+            NodeMetroHash128* hasher = new NodeMetroHash128(args[0]->IsUndefined() ? 0 : args[0]->NumberValue());
+            hasher->Wrap(args.This());
+            NanReturnValue(args.This());
+        } else {
+            const int argc = 1;
+            Local<Value> argv[argc] = { args[0] };
+            Local<Function> cons = NanNew<FunctionTemplate>(constructor128)->GetFunction();
+            NanReturnValue(cons->NewInstance(argc, argv));
+        }
     }
 
     static NAN_METHOD(Update) {

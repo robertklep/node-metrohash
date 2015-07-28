@@ -32,7 +32,7 @@ Hash#digest() : Buffer
 ``` javascript
 var MetroHash64 = require('metrohash').MetroHash64;
 
-// Instantiate using seed 123.
+// Instantiate using seed 123 (`new` is optional).
 var hash = new MetroHash64(123);
 
 // Update using a string as input.

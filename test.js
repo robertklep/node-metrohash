@@ -14,29 +14,67 @@ const TESTS = [
   { cls : MetroHash128, seed : 1, expected : '45A3CDB838199D7FBDD68D867A14ECEF' },
 ];
 
-describe('MetroHash', function() {
+describe('Instantiation and method calling', function() {
+
+  it('new MetroHash64() should work', function() {
+    expect(function() { new MetroHash64(); }).to.not.throw();
+  });
+
+  it('MetroHash64() should work', function() {
+    expect(function() { MetroHash64(); }).to.not.throw();
+  });
+
+  it('new MetroHash128() should work', function() {
+    expect(function() { new MetroHash128(); }).to.not.throw();
+  });
+
+  it('MetroHash128() should work', function() {
+    expect(function() { MetroHash128(); }).to.not.throw();
+  });
+
+  it('MetroHash64() should allow chaining', function() {
+    expect(function() {
+      new MetroHash64().update(TESTVECTOR_B).digest().toString('hex');
+    }).to.not.throw();
+  });
+
+  it('MetroHash128() should allow chaining', function() {
+    expect(function() {
+      new MetroHash128().update(TESTVECTOR_B).digest().toString('hex');
+    }).to.not.throw();
+  });
+
+});
+
+describe('Test vectors', function() {
 
   TESTS.forEach(function(test) {
     var suffix = test.seed !== undefined ? ', ' + test.seed + ')' : ')';
 
-    it(test.cls.name + '(String' + suffix, function() {
+    it('new ' + test.cls.name + '(String' + suffix, function() {
       var instance = new test.cls(test.seed);
       instance.update(TESTVECTOR_S);
       expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
     });
 
-    it(test.cls.name + '(Buffer' + suffix, function() {
+    it(test.cls.name + '(String' + suffix, function() {
+      var instance = test.cls(test.seed);
+      instance.update(TESTVECTOR_S);
+      expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
+    it('new ' + test.cls.name + '(Buffer' + suffix, function() {
       var instance = new test.cls(test.seed);
+      instance.update(TESTVECTOR_B);
+      expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
+    it(test.cls.name + '(Buffer' + suffix, function() {
+      var instance = test.cls(test.seed);
       instance.update(TESTVECTOR_B);
       expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
     });
 
   });
 
-  it('should allow chaining', function() {
-    expect(function() {
-      new MetroHash64().update(TESTVECTOR_B).digest().toString('hex');
-    }).to.not.throw();
-  });
-
-});
+})
