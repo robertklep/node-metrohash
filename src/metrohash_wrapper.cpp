@@ -58,6 +58,9 @@ class NodeMetroHash64 : public ObjectWrap {
 
         // Update hash.
         self->metro.Update(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length());
+
+        // Allow for chaining.
+        NanReturnValue(args.This());
     }
 
     static NAN_METHOD(Digest) {
@@ -127,6 +130,9 @@ class NodeMetroHash128 : public ObjectWrap {
 
         // Update hash.
         self->metro.Update(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length());
+
+        // Allow for chaining.
+        NanReturnValue(args.This());
     }
 
     static NAN_METHOD(Digest) {

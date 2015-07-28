@@ -33,4 +33,10 @@ describe('MetroHash', function() {
 
   });
 
+  it('should allow chaining', function() {
+    expect(function() {
+      new MetroHash64().update(TESTVECTOR_B).digest().toString('hex');
+    }).to.not.throw();
+  });
+
 });
