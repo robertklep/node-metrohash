@@ -75,6 +75,22 @@ describe('Test vectors', function() {
       expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
     });
 
+    it(test.cls.name + '(String' + suffix + ' incremental', function() {
+      var instance = test.cls(test.seed);
+      TESTVECTOR_S.split('').forEach(function(c) {
+        instance.update(c);
+      });
+      expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
+    it(test.cls.name + '(Buffer' + suffix + ' incremental', function() {
+      var instance = test.cls(test.seed);
+      for (var i = 0; i < TESTVECTOR_B.length; i++) {
+        instance.update(TESTVECTOR_B.slice(i, i + 1));
+      }
+      expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
   });
 
-})
+});
