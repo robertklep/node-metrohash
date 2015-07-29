@@ -14,13 +14,11 @@ static inline Local<Object> _to_buffer(std::string s) {
     return NanNewBufferHandle((char *) s.data(), s.size());
 }
 
-static Persistent<FunctionTemplate> constructor64;
-static Persistent<FunctionTemplate> constructor128;
-
 class NodeMetroHash64 : public ObjectWrap {
-    MetroHash64 metro;
-    uint8_t     digest[8];
-    bool        wasFinalized = false;
+    static Persistent<Function> constructor;
+    MetroHash64                 metro;
+    uint8_t                     digest[8];
+    bool                        wasFinalized = false;
 
     explicit NodeMetroHash64(uint64_t seed = 0) {
         metro.Initialize(seed);
@@ -36,7 +34,7 @@ class NodeMetroHash64 : public ObjectWrap {
         } else {
             const int argc = 1;
             Local<Value> argv[argc] = { args[0] };
-            Local<Function> cons = NanNew<FunctionTemplate>(constructor64)->GetFunction();
+            Local<Function> cons = NanNew<Function>(constructor);
             NanReturnValue(cons->NewInstance(argc, argv));
         }
     }
@@ -86,20 +84,30 @@ class NodeMetroHash64 : public ObjectWrap {
     }
 
 public:
-    static void Init() {
-        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(NodeMetroHash64::New);
-        NanAssignPersistent(constructor64, tpl);
+    static void Init(Handle<Object> exports) {
+        NanScope();
+        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+
+        // Prepare constructor template
         tpl->SetClassName(NanSymbol("MetroHash64"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        // Prototype
         NODE_SET_PROTOTYPE_METHOD(tpl, "update", NodeMetroHash64::Update);
         NODE_SET_PROTOTYPE_METHOD(tpl, "digest", NodeMetroHash64::Digest);
+
+        NanAssignPersistent(constructor, tpl->GetFunction());
+        exports->Set(NanNew("MetroHash64"), tpl->GetFunction());
     }
 };
 
+Persistent<Function> NodeMetroHash64::constructor;
+
 class NodeMetroHash128 : public ObjectWrap {
-    MetroHash128 metro;
-    uint8_t     digest[16];
-    bool        wasFinalized = false;
+    static Persistent<Function> constructor;
+    MetroHash128                metro;
+    uint8_t                     digest[16];
+    bool                        wasFinalized = false;
 
     explicit NodeMetroHash128(uint64_t seed = 0) {
         metro.Initialize(seed);
@@ -115,7 +123,7 @@ class NodeMetroHash128 : public ObjectWrap {
         } else {
             const int argc = 1;
             Local<Value> argv[argc] = { args[0] };
-            Local<Function> cons = NanNew<FunctionTemplate>(constructor128)->GetFunction();
+            Local<Function> cons = NanNew<Function>(constructor);
             NanReturnValue(cons->NewInstance(argc, argv));
         }
     }
@@ -165,25 +173,29 @@ class NodeMetroHash128 : public ObjectWrap {
     }
 
 public:
-    static void Init() {
-        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(NodeMetroHash128::New);
-        NanAssignPersistent(constructor128, tpl);
+    static void Init(Handle<Object> exports) {
+        NanScope();
+        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+
+        // Prepare constructor template
         tpl->SetClassName(NanSymbol("MetroHash128"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        // Prototype
         NODE_SET_PROTOTYPE_METHOD(tpl, "update", NodeMetroHash128::Update);
         NODE_SET_PROTOTYPE_METHOD(tpl, "digest", NodeMetroHash128::Digest);
+
+        NanAssignPersistent(constructor, tpl->GetFunction());
+        exports->Set(NanNew("MetroHash128"), tpl->GetFunction());
     }
 };
 
+Persistent<Function> NodeMetroHash128::constructor;
+
 // Addon initialization.
 void InitAll(Handle<Object> exports) {
-    NodeMetroHash64::Init();
-    Local<FunctionTemplate> constructor64Handle  = NanNew(constructor64);
-    exports->Set(NanNew("MetroHash64"),  constructor64Handle->GetFunction());
-
-    NodeMetroHash128::Init();
-    Local<FunctionTemplate> constructor128Handle = NanNew(constructor128);
-    exports->Set(NanNew("MetroHash128"), constructor128Handle->GetFunction());
+    NodeMetroHash64::Init(exports);
+    NodeMetroHash128::Init(exports);
 }
 
 NODE_MODULE(metrohash, InitAll)
