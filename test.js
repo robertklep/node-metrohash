@@ -91,6 +91,16 @@ describe('Test vectors', function() {
       expect(instance.digest().toString('hex').toUpperCase()).to.equal(test.expected);
     });
 
+    it(test.cls.name + '(String' + suffix + ' one shot', function() {
+      var instance = test.cls(test.seed);
+      expect(instance.hash(TESTVECTOR_S).toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
+    it(test.cls.name + '(Buffer' + suffix + ' one shot', function() {
+      var instance = test.cls(test.seed);
+      expect(instance.hash(TESTVECTOR_B).toString('hex').toUpperCase()).to.equal(test.expected);
+    });
+
   });
 
 });

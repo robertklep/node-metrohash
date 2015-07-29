@@ -23,8 +23,11 @@ Hash([ seed:Number = 0 ]) : Object
 // Update.
 Hash#update(input : [String | Buffer]) : void
 
-// Finalize and get hash values.
+// Finalize and get hash digest.
 Hash#digest() : Buffer
+
+// One-shot: hash input and return digest.
+Hash#hash(input : [String | Buffer]) : Buffer
 ```
 
 ### Examples
@@ -43,4 +46,7 @@ hash.update('Hello, World!');
 
 // Finalize and convert to hex string.
 var digest = hash.digest().toString('hex');
+
+// Or as one-shot:
+var digest = MetroHash64(123).hash('Hello, World!').toString('hex');
 ```

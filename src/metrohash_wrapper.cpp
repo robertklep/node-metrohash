@@ -18,10 +18,11 @@ template <typename HASHER, int DIGEST_SIZE>
 class NodeMetroHash : public ObjectWrap {
     static Persistent<Function> constructor;
     HASHER                      metro;
+    uint64_t                    seed;
     uint8_t                     digest[DIGEST_SIZE];
     bool                        wasFinalized = false;
 
-    explicit NodeMetroHash(uint64_t seed = 0) {
+    explicit NodeMetroHash(uint64_t seed = 0) : seed(seed) {
         metro.Initialize(seed);
     }
 
@@ -84,6 +85,37 @@ class NodeMetroHash : public ObjectWrap {
         NanReturnValue(_to_buffer(hash));
     }
 
+    static NAN_METHOD(Hash) {
+        NanScope();
+        NodeMetroHash* self = ObjectWrap::Unwrap<NodeMetroHash>(args.This());
+
+        // Argument validation.
+        if (args.Length() != 1) {
+            NanThrowTypeError("Missing argument");
+            NanReturnUndefined();
+        }
+        if (! _is_buffer(args[0]) && ! args[0]->IsString()) {
+            NanThrowTypeError("`data` argument must be String or Buffer");
+            NanReturnUndefined();
+        }
+
+        // Handle data argument.
+        std::string data;
+        if (_is_buffer(args[0])) {
+            data = std::string(Buffer::Data(args[0]), Buffer::Length(args[0]));
+        } else {
+            data = std::string(*NanUtf8String(args[0]));
+        }
+
+        // One-shot hash.
+        uint8_t digest[DIGEST_SIZE];
+        self->metro.Hash(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length(), digest, self->seed);
+
+        // Return as buffer.
+        std::string hash(reinterpret_cast<char const *>(digest), DIGEST_SIZE);
+        NanReturnValue(_to_buffer(hash));
+    }
+
 public:
     static void Init(const char *js_class_name, Handle<Object> exports) {
         NanScope();
@@ -96,6 +128,7 @@ public:
         // Prototype
         NODE_SET_PROTOTYPE_METHOD(tpl, "update", Update);
         NODE_SET_PROTOTYPE_METHOD(tpl, "digest", Digest);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "hash",   Hash);
 
         NanAssignPersistent(constructor, tpl->GetFunction());
         exports->Set(NanNew(js_class_name), tpl->GetFunction());
