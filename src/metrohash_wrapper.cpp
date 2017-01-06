@@ -164,10 +164,8 @@ typedef NodeMetroHash<MetroHash128, 16> NodeMetroHash128;
             return; \
         } \
         MetroHash ## BITS::Hash((const unsigned char *) data, size, digest, 0); \
-        std::string hash((char const *) digest, BITS >> 3); \
-        info.GetReturnValue().Set(_to_buffer(hash)); \
+        info.GetReturnValue().Set(Nan::Encode((char *) digest, BITS >> 3, Nan::HEX)); \
     };
-
 
 STANDALONE_HASHER(64)
 STANDALONE_HASHER(128)
