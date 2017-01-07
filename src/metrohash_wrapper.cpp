@@ -5,15 +5,6 @@
 using namespace v8;
 using namespace node;
 
-// Helper functions.
-static inline bool _is_buffer(Handle<Value> v) {
-    return node::Buffer::HasInstance(v);
-}
-
-static inline Local<Object> _to_buffer(std::string s) {
-    return Nan::CopyBuffer((char *) s.data(), s.size()).ToLocalChecked();
-}
-
 template <typename HASHER, int DIGEST_SIZE>
 class NodeMetroHash : public Nan::ObjectWrap {
     static Nan::Persistent<Function> constructor;
@@ -50,21 +41,24 @@ class NodeMetroHash : public Nan::ObjectWrap {
             Nan::ThrowTypeError("Missing argument");
             return;
         }
-        if (! _is_buffer(info[0]) && ! info[0]->IsString()) {
+
+        // Determine data and size of content to be hashed.
+        char*  data;
+        size_t size;
+        if (Buffer::HasInstance(info[0])) {
+            data = Buffer::Data(info[0]);
+            size = Buffer::Length(info[0]);
+        } else if (info[0]->IsString()) {
+            std::string str = *Nan::Utf8String(info[0]);
+            data = (char *) str.c_str();
+            size = str.length();
+        } else {
             Nan::ThrowTypeError("`data` argument must be String or Buffer");
             return;
         }
 
-        // Handle data argument.
-        std::string data;
-        if (_is_buffer(info[0])) {
-            data = std::string(Buffer::Data(info[0]), Buffer::Length(info[0]));
-        } else {
-            data = std::string(*Nan::Utf8String(info[0]));
-        }
-
         // Update hash.
-        self->metro.Update(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length());
+        self->metro.Update((const uint8_t *) data, size);
 
         // Allow for chaining.
         info.GetReturnValue().Set(info.This());
@@ -80,9 +74,8 @@ class NodeMetroHash : public Nan::ObjectWrap {
             self->wasFinalized = true;
         }
 
-        // Return as buffer.
-        std::string hash(reinterpret_cast<char const *>(self->digest), DIGEST_SIZE);
-        info.GetReturnValue().Set(_to_buffer(hash));
+        // Return as hex string.
+        info.GetReturnValue().Set(Nan::Encode((char *) self->digest, DIGEST_SIZE, Nan::HEX));
     }
 
     static NAN_METHOD(Hash) {
@@ -94,26 +87,28 @@ class NodeMetroHash : public Nan::ObjectWrap {
             Nan::ThrowTypeError("Missing argument");
             return;
         }
-        if (! _is_buffer(info[0]) && ! info[0]->IsString()) {
+
+        // Determine data and size of content to be hashed.
+        char*  data;
+        size_t size;
+        if (Buffer::HasInstance(info[0])) {
+            data = Buffer::Data(info[0]);
+            size = Buffer::Length(info[0]);
+        } else if (info[0]->IsString()) {
+            std::string str = *Nan::Utf8String(info[0]);
+            data = (char *) str.c_str();
+            size = str.length();
+        } else {
             Nan::ThrowTypeError("`data` argument must be String or Buffer");
             return;
         }
 
-        // Handle data argument.
-        std::string data;
-        if (_is_buffer(info[0])) {
-            data = std::string(Buffer::Data(info[0]), Buffer::Length(info[0]));
-        } else {
-            data = std::string(*Nan::Utf8String(info[0]));
-        }
-
         // One-shot hash.
         uint8_t digest[DIGEST_SIZE];
-        self->metro.Hash(reinterpret_cast<const uint8_t *>( data.c_str() ), data.length(), digest, self->seed);
+        self->metro.Hash((const uint8_t * ) data, size, digest, self->seed);
 
-        // Return as buffer.
-        std::string hash(reinterpret_cast<char const *>(digest), DIGEST_SIZE);
-        info.GetReturnValue().Set(_to_buffer(hash));
+        // Return as hex string.
+        info.GetReturnValue().Set(Nan::Encode((char *) digest, DIGEST_SIZE, Nan::HEX));
     }
 
 public:
@@ -152,7 +147,7 @@ typedef NodeMetroHash<MetroHash128, 16> NodeMetroHash128;
         } \
         char  *data; \
         size_t size; \
-        if (_is_buffer(info[0])) { \
+        if (Buffer::HasInstance(info[0])) { \
             data = Buffer::Data(info[0]); \
             size = Buffer::Length(info[0]); \
         } else if (info[0]->IsString()) { \
