@@ -78,39 +78,6 @@ class NodeMetroHash : public Nan::ObjectWrap {
         info.GetReturnValue().Set(Nan::Encode((char *) self->digest, DIGEST_SIZE, Nan::HEX));
     }
 
-    static NAN_METHOD(Hash) {
-        Nan::HandleScope scope;
-        NodeMetroHash* self = Nan::ObjectWrap::Unwrap<NodeMetroHash>(info.This());
-
-        // Argument validation.
-        if (info.Length() != 1) {
-            Nan::ThrowTypeError("Missing argument");
-            return;
-        }
-
-        // Determine data and size of content to be hashed.
-        char*  data;
-        size_t size;
-        if (Buffer::HasInstance(info[0])) {
-            data = Buffer::Data(info[0]);
-            size = Buffer::Length(info[0]);
-        } else if (info[0]->IsString()) {
-            std::string str = *Nan::Utf8String(info[0]);
-            data = (char *) str.c_str();
-            size = str.length();
-        } else {
-            Nan::ThrowTypeError("`data` argument must be String or Buffer");
-            return;
-        }
-
-        // One-shot hash.
-        uint8_t digest[DIGEST_SIZE];
-        self->metro.Hash((const uint8_t * ) data, size, digest, self->seed);
-
-        // Return as hex string.
-        info.GetReturnValue().Set(Nan::Encode((char *) digest, DIGEST_SIZE, Nan::HEX));
-    }
-
 public:
     static void Init(const char *js_class_name, Handle<Object> target) {
         Nan::HandleScope scope;
@@ -123,7 +90,6 @@ public:
         // Prototype
         Nan::SetPrototypeMethod(tpl, "update", Update);
         Nan::SetPrototypeMethod(tpl, "digest", Digest);
-        Nan::SetPrototypeMethod(tpl, "hash",   Hash);
 
         constructor.Reset(tpl->GetFunction());
         Nan::Set(target, Nan::New(js_class_name).ToLocalChecked(), tpl->GetFunction());
@@ -139,10 +105,8 @@ typedef NodeMetroHash<MetroHash128, 16> NodeMetroHash128;
 // Standalone hashers
 #define STANDALONE_HASHER(BITS) \
     NAN_METHOD(metrohash ## BITS) { \
-        uint8_t digest[ BITS >> 3 ]; \
- \
-        if (info.Length() != 1) { \
-            Nan::ThrowTypeError("Missing argument"); \
+        if (info.Length() < 1) { \
+            Nan::ThrowTypeError("Missing argument(s)"); \
             return; \
         } \
         char  *data; \
@@ -155,10 +119,19 @@ typedef NodeMetroHash<MetroHash128, 16> NodeMetroHash128;
             data = (char *) str.c_str(); \
             size = str.length(); \
         } else { \
-            Nan::ThrowTypeError("`data` argument must be String or Buffer"); \
+            Nan::ThrowTypeError("data must be String or Buffer"); \
             return; \
         } \
-        MetroHash ## BITS::Hash((const unsigned char *) data, size, digest, 0); \
+        uint64_t seed = 0; \
+        if (info.Length() > 1) { \
+            if (! info[1]->IsNumber()) { \
+                Nan::ThrowTypeError("seed must be numerical"); \
+                return; \
+            } \
+            seed = info[1]->NumberValue(); \
+        } \
+        uint8_t digest[ BITS >> 3 ]; \
+        MetroHash ## BITS::Hash((const unsigned char *) data, size, digest, seed); \
         info.GetReturnValue().Set(Nan::Encode((char *) digest, BITS >> 3, Nan::HEX)); \
     };
 

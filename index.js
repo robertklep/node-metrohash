@@ -1,1 +1,1 @@
-var metrohash = module.exports = require('bindings')('metrohash.node');
+module.exports = require('bindings')('metrohash.node');

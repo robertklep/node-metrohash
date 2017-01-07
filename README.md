@@ -10,33 +10,62 @@ Wrapper around [MetroHash](https://github.com/jandrewrogers/MetroHash).
 $ npm install metrohash
 ```
 
+### API change!
+
+Between v1 and v2, the API for this library has changed to allow for maximum hashing speed.
+
+The biggest change is that a calculated hash is now returned as a (hex-encoded) string instead of a `Buffer`.
+
+If a `Buffer` is still required, it's easy to convert the string:
+
+```
+let buffer = Buffer.from(metrohash64('input'), 'hex');
+```
+
+Also, the `.hash()` methods for the hasher classes have been removed in favor of standalone functions (see below).
+
 ### Usage
 
-The module exports 2 classes, `MetroHash64` and `MetroHash128`.
+The module exports 2 classes, `MetroHash64` and `MetroHash128`, and two functions, `metrohash64` and `metrohash128`.
 
-Both have the same interface:
+The classes are meant for incremental hashing, the functions for standalone hash calculations.
+
+#### Class interface
 
 ``` javascript
+const MetroHash64 = require('metrohash').MetroHash64;
+
 // Constructor.
-Hash([ seed:Number = 0 ]) : Object
+MetroHash64([ seed:Number = 0 ]) : Object
 
 // Update.
-Hash#update(input : [String | Buffer]) : void
+MetroHash64#update(input : [String | Buffer]) : Object
 
 // Finalize and get hash digest.
-Hash#digest() : Buffer
-
-// One-shot: hash input and return digest.
-Hash#hash(input : [String | Buffer]) : Buffer
+MetroHash64#digest() : String
 ```
+
+(likewise for `MetroHash128`).
+
+#### Function interface
+
+```
+const metrohash64 = require('metrohash').metrohash64;
+
+metrohash64(input : [String | Buffer], [ seed:Number = 0 ]) : String
+```
+
+(likewise for `metrohash128`).
 
 ### Examples
 
 ``` javascript
-var MetroHash64 = require('metrohash').MetroHash64;
+//// Classes
+
+const MetroHash64 = require('metrohash').MetroHash64;
 
 // Instantiate using seed 123 (`new` is optional).
-var hash = new MetroHash64(123);
+let hash = new MetroHash64(123);
 
 // Update using a string as input.
 hash.update('Hello, World!');
@@ -44,9 +73,15 @@ hash.update('Hello, World!');
 // The same as above:
 // hash.update('Hello, ').update('World!');
 
-// Finalize and convert to hex string.
-var digest = hash.digest().toString('hex');
+// Finalize to get the digest as a hex string.
+let digest = hash.digest();
 
-// Or as one-shot:
-var digest = MetroHash64(123).hash('Hello, World!').toString('hex');
+//// Functions
+const metrohash64 = require('metrohash').metrohash64;
+
+let digest = metrohash64('Hello, World!', 123);
 ```
+
+### Speed
+
+From v2.0 onwards, MetroHash is [pretty fast](https://medium.com/@drainingsun/in-search-of-a-good-node-js-hashing-algorithm-8052b6923a3b).
