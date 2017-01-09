@@ -1,3 +1,4 @@
+'use strict';
 var MetroHash64  = require('./index').MetroHash64;
 var MetroHash128 = require('./index').MetroHash128;
 var metrohash64  = require('./index').metrohash64;
