@@ -5,10 +5,10 @@
 using namespace v8;
 using namespace node;
 
-template <typename HASHER, int DIGEST_SIZE>
+template <typename HashClass, int DIGEST_SIZE>
 class NodeMetroHash : public Nan::ObjectWrap {
     static Nan::Persistent<Function> constructor;
-    HASHER                           metro;
+    HashClass                        metro;
     uint64_t                         seed;
     uint8_t                          digest[DIGEST_SIZE];
     bool                             wasFinalized = false;
@@ -96,47 +96,47 @@ public:
     }
 };
 
-template <typename HASHER, int DIGEST_SIZE>
-Nan::Persistent<Function> NodeMetroHash<HASHER, DIGEST_SIZE>::constructor;
+template <typename HashClass, int DIGEST_SIZE>
+Nan::Persistent<Function> NodeMetroHash<HashClass, DIGEST_SIZE>::constructor;
 
 typedef NodeMetroHash<MetroHash64,   8>  NodeMetroHash64;
 typedef NodeMetroHash<MetroHash128, 16> NodeMetroHash128;
 
 // Standalone hashers
-#define STANDALONE_HASHER(BITS) \
-    NAN_METHOD(metrohash ## BITS) { \
-        if (info.Length() < 1) { \
-            Nan::ThrowTypeError("Missing argument(s)"); \
-            return; \
-        } \
-        char  *data; \
-        size_t size; \
-        if (Buffer::HasInstance(info[0])) { \
-            data = Buffer::Data(info[0]); \
-            size = Buffer::Length(info[0]); \
-        } else if (info[0]->IsString()) { \
-            std::string str = *Nan::Utf8String(info[0]); \
-            data = (char *) str.c_str(); \
-            size = str.length(); \
-        } else { \
-            Nan::ThrowTypeError("data must be String or Buffer"); \
-            return; \
-        } \
-        uint64_t seed = 0; \
-        if (info.Length() > 1) { \
-            if (! info[1]->IsNumber()) { \
-                Nan::ThrowTypeError("seed must be numerical"); \
-                return; \
-            } \
-            seed = info[1]->NumberValue(); \
-        } \
-        uint8_t digest[ BITS >> 3 ]; \
-        MetroHash ## BITS::Hash((const unsigned char *) data, size, digest, seed); \
-        info.GetReturnValue().Set(Nan::Encode((char *) digest, BITS >> 3, Nan::HEX)); \
-    };
+template<typename HashClass, int BITS>
+NAN_METHOD(NodeMetroHashFn) {
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("Missing argument(s)");
+        return;
+    }
+    char  *data;
+    size_t size;
+    if (Buffer::HasInstance(info[0])) {
+        data = Buffer::Data(info[0]);
+        size = Buffer::Length(info[0]);
+    } else if (info[0]->IsString()) {
+        std::string str = *Nan::Utf8String(info[0]);
+        data = (char *) str.c_str();
+        size = str.length();
+    } else {
+        Nan::ThrowTypeError("data must be String or Buffer");
+        return;
+    }
+    uint64_t seed = 0;
+    if (info.Length() > 1) {
+        if (! info[1]->IsNumber()) {
+            Nan::ThrowTypeError("seed must be numerical");
+            return;
+        }
+        seed = info[1]->NumberValue();
+    }
+    uint8_t digest[ BITS >> 3 ];
+    HashClass::Hash((const unsigned char *) data, size, digest, seed);
+    info.GetReturnValue().Set(Nan::Encode((char *) digest, BITS >> 3, Nan::HEX));
+};
 
-STANDALONE_HASHER(64)
-STANDALONE_HASHER(128)
+constexpr auto NodeMetroHashFn64  = &NodeMetroHashFn<MetroHash64,  64>;
+constexpr auto NodeMetroHashFn128 = &NodeMetroHashFn<MetroHash128, 128>;
 
 // Addon initialization.
 NAN_MODULE_INIT(InitAll) {
@@ -145,12 +145,12 @@ NAN_MODULE_INIT(InitAll) {
     NodeMetroHash128::Init("MetroHash128", target);
 
     // Export standalone hashing functions
-    Local<v8::Function> fn64   = Nan::GetFunction(Nan::New<FunctionTemplate>(metrohash64)).ToLocalChecked();
+    Local<v8::Function> fn64   = Nan::GetFunction(Nan::New<FunctionTemplate>(NodeMetroHashFn64)).ToLocalChecked();
     Local<v8::String>   name64 = Nan::New("metrohash64").ToLocalChecked();
     fn64->SetName(name64);
     Nan::Set(target, name64, fn64);
 
-    Local<v8::Function> fn128   = Nan::GetFunction(Nan::New<FunctionTemplate>(metrohash128)).ToLocalChecked();
+    Local<v8::Function> fn128   = Nan::GetFunction(Nan::New<FunctionTemplate>(NodeMetroHashFn128)).ToLocalChecked();
     Local<v8::String>   name128 = Nan::New("metrohash128").ToLocalChecked();
     fn128->SetName(name128);
     Nan::Set(target, name128, fn128);
