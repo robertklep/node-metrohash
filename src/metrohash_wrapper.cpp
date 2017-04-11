@@ -45,11 +45,12 @@ class NodeMetroHash : public Nan::ObjectWrap {
         // Determine data and size of content to be hashed.
         char*  data;
         size_t size;
+        std::string str;
         if (Buffer::HasInstance(info[0])) {
             data = Buffer::Data(info[0]);
             size = Buffer::Length(info[0]);
         } else if (info[0]->IsString()) {
-            std::string str = *Nan::Utf8String(info[0]);
+            str  = *Nan::Utf8String(info[0]);
             data = (char *) str.c_str();
             size = str.length();
         } else {
@@ -109,13 +110,14 @@ NAN_METHOD(NodeMetroHashFn) {
         Nan::ThrowTypeError("Missing argument(s)");
         return;
     }
-    char  *data;
-    size_t size;
+    char       *data;
+    size_t      size;
+    std::string str;
     if (Buffer::HasInstance(info[0])) {
         data = Buffer::Data(info[0]);
         size = Buffer::Length(info[0]);
     } else if (info[0]->IsString()) {
-        std::string str = *Nan::Utf8String(info[0]);
+        str  = *Nan::Utf8String(info[0]);
         data = (char *) str.c_str();
         size = str.length();
     } else {
