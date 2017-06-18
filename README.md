@@ -1,7 +1,7 @@
 # node-metrohash
 
 Wrapper around [MetroHash](https://github.com/jandrewrogers/MetroHash).
- 
+
 [![Build Status](https://travis-ci.org/robertklep/node-metrohash.svg)](https://travis-ci.org/robertklep/node-metrohash)
 
 ### Installation
@@ -30,16 +30,18 @@ The module exports 2 classes, `MetroHash64` and `MetroHash128`, and two function
 
 The classes are meant for incremental hashing, the functions for standalone hash calculations.
 
+The class constructors and functions accept an optional `seed` numerical argument, which defaults to `0`.
+
 #### Class interface
 
 ``` javascript
 const MetroHash64 = require('metrohash').MetroHash64;
 
 // Constructor.
-MetroHash64([ seed:Number = 0 ]) : Object
+MetroHash64(seed? : number) : this
 
 // Update.
-MetroHash64#update(input : [String | Buffer]) : Object
+MetroHash64#update(input : String | Buffer) : this
 
 // Finalize and get hash digest.
 MetroHash64#digest() : String
@@ -52,7 +54,7 @@ MetroHash64#digest() : String
 ```
 const metrohash64 = require('metrohash').metrohash64;
 
-metrohash64(input : [String | Buffer], [ seed:Number = 0 ]) : String
+metrohash64(input : String | Buffer, seed? : number) : String
 ```
 
 (likewise for `metrohash128`).
