@@ -137,8 +137,8 @@ NAN_METHOD(NodeMetroHashFn) {
     info.GetReturnValue().Set(Nan::Encode((char *) digest, BITS >> 3, Nan::HEX));
 };
 
-constexpr auto NodeMetroHashFn64  = &NodeMetroHashFn<MetroHash64,  64>;
-constexpr auto NodeMetroHashFn128 = &NodeMetroHashFn<MetroHash128, 128>;
+const auto NodeMetroHashFn64  = &NodeMetroHashFn<MetroHash64,  64>;
+const auto NodeMetroHashFn128 = &NodeMetroHashFn<MetroHash128, 128>;
 
 // Addon initialization.
 NAN_MODULE_INIT(InitAll) {
