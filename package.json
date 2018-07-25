@@ -5,7 +5,7 @@
   "scripts": {
     "build": "node-gyp rebuild",
     "rebuild": "node-gyp rebuild",
-    "test": "./node_modules/.bin/mocha test.js"
+    "test": "mocha test.js"
   },
   "main": "index.js",
   "types": "index.d.ts",
