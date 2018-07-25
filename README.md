@@ -3,6 +3,7 @@
 Wrapper around [MetroHash](https://github.com/jandrewrogers/MetroHash).
 
 [![Build Status](https://travis-ci.org/robertklep/node-metrohash.svg)](https://travis-ci.org/robertklep/node-metrohash)
+[![Build status](https://ci.appveyor.com/api/projects/status/49944yng9l70q41k/branch/master?svg=true)](https://ci.appveyor.com/project/robertklep/node-metrohash/branch/master)
 
 ### Installation
 

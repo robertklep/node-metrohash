@@ -1,0 +1,32 @@
+clone_depth: 10
+
+environment:
+  matrix:
+    - nodejs_version: 6
+    - nodejs_version: 8
+    - nodejs_version: 10
+
+matrix:
+  fast_finish: true
+
+platform:
+  - x64
+
+branches:
+  only:
+    - master
+
+version: "{build}"
+build: off
+deploy: off
+
+install:
+  - ps: Install-Product node $env:nodejs_version $env:platform
+  - npm install
+
+test_script:
+  - npm test
+
+cache:
+  # global npm cache
+  - '%APPDATA%\npm-cache'
