@@ -1,6 +1,6 @@
 {
   "name": "metrohash",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "Node.js bindings for MetroHash hashing library",
   "scripts": {
     "build": "node-gyp rebuild",
