@@ -4,6 +4,7 @@
     "sources"        : [ "./src/metrohash_wrapper.cpp", "./src/metrohash128.cpp", "./src/metrohash128crc.cpp", "./src/metrohash64.cpp" ],
     "cflags"         : [ "-std=c++11 -Wno-deprecated-declarations -Wno-unused-value -Wno-unused-function -Wno-unknown-pragmas -Wno-format -msse4.2" ],
     "include_dirs"   : [ "<!(node -e \"require('nan')\")" ],
+    "defines"        : [ "__USE_XOPEN2K8" ],
     "conditions"   : [
       ["OS == 'mac'", {
         "xcode_settings" : {
