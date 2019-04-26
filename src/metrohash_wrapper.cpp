@@ -21,7 +21,7 @@ class NodeMetroHash : public Nan::ObjectWrap {
         Nan::HandleScope scope;
         if (info.IsConstructCall()) {
             // TODO: check if argument type makes sense
-            NodeMetroHash* hash = new NodeMetroHash(info[0]->IsUndefined() ? 0 : Nan::To<int64_t>(info[0]).ToChecked());
+            NodeMetroHash* hash = new NodeMetroHash(info[0]->IsUndefined() ? 0 : Nan::To<int64_t>(info[0]).FromJust());
             hash->Wrap(info.This());
             info.GetReturnValue().Set(info.This());
         } else {
@@ -130,7 +130,7 @@ NAN_METHOD(NodeMetroHashFn) {
             Nan::ThrowTypeError("seed must be numerical");
             return;
         }
-        seed = Nan::To<int64_t>(info[1]).ToChecked();
+        seed = Nan::To<int64_t>(info[1]).FromJust();
     }
     uint8_t digest[ BITS >> 3 ];
     HashClass::Hash((const unsigned char *) data, size, digest, seed);
