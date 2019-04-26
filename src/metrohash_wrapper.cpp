@@ -21,7 +21,7 @@ class NodeMetroHash : public Nan::ObjectWrap {
         Nan::HandleScope scope;
         if (info.IsConstructCall()) {
             // TODO: check if argument type makes sense
-            NodeMetroHash* hash = new NodeMetroHash(info[0]->IsUndefined() ? 0 : info[0]->NumberValue());
+            NodeMetroHash* hash = new NodeMetroHash(info[0]->IsUndefined() ? 0 : Nan::To<int64_t>(info[0]).ToChecked());
             hash->Wrap(info.This());
             info.GetReturnValue().Set(info.This());
         } else {
@@ -80,7 +80,7 @@ class NodeMetroHash : public Nan::ObjectWrap {
     }
 
 public:
-    static void Init(const char *js_class_name, Handle<Object> target) {
+    static void Init(const char *js_class_name, Local<Object> target) {
         Nan::HandleScope scope;
         Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
 
@@ -92,8 +92,8 @@ public:
         Nan::SetPrototypeMethod(tpl, "update", Update);
         Nan::SetPrototypeMethod(tpl, "digest", Digest);
 
-        constructor.Reset(tpl->GetFunction());
-        Nan::Set(target, Nan::New(js_class_name).ToLocalChecked(), tpl->GetFunction());
+        constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
+        Nan::Set(target, Nan::New(js_class_name).ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
     }
 };
 
@@ -130,7 +130,7 @@ NAN_METHOD(NodeMetroHashFn) {
             Nan::ThrowTypeError("seed must be numerical");
             return;
         }
-        seed = info[1]->NumberValue();
+        seed = Nan::To<int64_t>(info[1]).ToChecked();
     }
     uint8_t digest[ BITS >> 3 ];
     HashClass::Hash((const unsigned char *) data, size, digest, seed);
