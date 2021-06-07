@@ -6,7 +6,7 @@ var metrohash128 = require('./index').metrohash128;
 var expect       = require('chai').expect;
 
 const TESTVECTOR_S = '012345678901234567890123456789012345678901234567890123456789012';
-const TESTVECTOR_B = new Buffer(TESTVECTOR_S);
+const TESTVECTOR_B = Buffer.from(TESTVECTOR_S);
 
 const CLS_TESTS = [
   { cls : MetroHash64,            expected : '6b753dae06704bad' },
