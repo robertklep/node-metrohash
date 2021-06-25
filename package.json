@@ -14,12 +14,12 @@
   "repository": "robertklep/node-metrohash",
   "license": "MIT",
   "dependencies": {
-    "bindings": "^1.3.0",
-    "nan": "^2.13.2",
-    "node-gyp": "^3.8.0"
+    "bindings": "^1.5.0",
+    "nan": "^2.14.2",
+    "node-gyp": "^8.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "mocha": "^5.1.1"
+    "mocha": "^9.0.1"
   }
 }
