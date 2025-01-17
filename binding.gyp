@@ -14,7 +14,8 @@
             "-stdlib=libc++",
             "-Wno-unused-function",
             "-Wno-deprecated-declarations",
-            "-Wno-format"
+            "-Wno-format",
+            "-mcrc32"
           ],
           "conditions": [
             ["target_arch=='x64'", {
