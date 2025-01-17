@@ -14,8 +14,15 @@
             "-stdlib=libc++",
             "-Wno-unused-function",
             "-Wno-deprecated-declarations",
-            "-Wno-format",
-            "-msse4.2"
+            "-Wno-format"
+          ],
+          "conditions": [
+            ["target_arch=='x64'", {
+              "OTHER_CFLAGS!": ["-msse4.2"]
+            }],
+            ["target_arch=='arm64'", {
+              "OTHER_CFLAGS!": ["-march=armv8-a+crc"]
+            }]
           ]
         }
       }]
