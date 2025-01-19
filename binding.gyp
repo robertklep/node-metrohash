@@ -15,14 +15,12 @@
             "-Wno-unused-function",
             "-Wno-deprecated-declarations",
             "-Wno-format",
-            "-mcrc32"
+            "-msse4.2"
           ],
           "conditions": [
-            ["target_arch=='x64'", {
-              "OTHER_CFLAGS!": ["-msse4.2"]
-            }],
             ["target_arch=='arm64'", {
-              "OTHER_CFLAGS!": ["-march=armv8-a+crc"]
+              "OTHER_CFLAGS": ["-march=armv8-a+crc"],
+              "OTHER_CFLAGS!": ["-msse4.2"]
             }]
           ]
         }
