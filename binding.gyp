@@ -16,6 +16,12 @@
             "-Wno-deprecated-declarations",
             "-Wno-format",
             "-msse4.2"
+          ],
+          "conditions": [
+            ["target_arch=='arm64'", {
+              "OTHER_CFLAGS": ["-march=armv8-a+crc"],
+              "OTHER_CFLAGS!": ["-msse4.2"]
+            }]
           ]
         }
       }]

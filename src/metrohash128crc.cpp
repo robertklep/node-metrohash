@@ -24,7 +24,15 @@
 //
 
 
-#include <nmmintrin.h>
+#if defined(__x86_64__)
+    #include <smmintrin.h>  // For SSE4.2
+    #define METROHASH_CRC32_U64(val, data) _mm_crc32_u64(val, data)
+#elif defined(__aarch64__)
+    #include <arm_acle.h>   // For ARM CRC32
+    #define METROHASH_CRC32_U64(val, data) __crc32d(val, data)
+#else
+    #error "Architecture not supported"
+#endif
 #include <string.h>
 #include "metrohash.h"
 #include "platform.h"
@@ -52,10 +60,10 @@ void metrohash128crc_1(const uint8_t * key, uint64_t len, uint32_t seed, uint8_t
 
         do
         {
-            v[0] ^= _mm_crc32_u64(v[0], read_u64(ptr)); ptr += 8;
-            v[1] ^= _mm_crc32_u64(v[1], read_u64(ptr)); ptr += 8;
-            v[2] ^= _mm_crc32_u64(v[2], read_u64(ptr)); ptr += 8;
-            v[3] ^= _mm_crc32_u64(v[3], read_u64(ptr)); ptr += 8;
+            v[0] ^= METROHASH_CRC32_U64(v[0], read_u64(ptr)); ptr += 8;
+            v[1] ^= METROHASH_CRC32_U64(v[1], read_u64(ptr)); ptr += 8;
+            v[2] ^= METROHASH_CRC32_U64(v[2], read_u64(ptr)); ptr += 8;
+            v[3] ^= METROHASH_CRC32_U64(v[3], read_u64(ptr)); ptr += 8;
         }
         while (ptr <= (end - 32));
 
@@ -81,19 +89,19 @@ void metrohash128crc_1(const uint8_t * key, uint64_t len, uint32_t seed, uint8_t
     
     if ((end - ptr) >= 4)
     {
-        v[1] ^= _mm_crc32_u64(v[0], read_u32(ptr)); ptr += 4;
+        v[1] ^= METROHASH_CRC32_U64(v[0], read_u32(ptr)); ptr += 4;
         v[1] ^= rotate_right((v[1] * k3) + v[0], 19) * k0;
     }
     
     if ((end - ptr) >= 2)
     {
-        v[0] ^= _mm_crc32_u64(v[1], read_u16(ptr)); ptr += 2;
+        v[0] ^= METROHASH_CRC32_U64(v[1], read_u16(ptr)); ptr += 2;
         v[0] ^= rotate_right((v[0] * k2) + v[1], 13) * k1;
     }
     
     if ((end - ptr) >= 1)
     {
-        v[1] ^= _mm_crc32_u64(v[0], read_u8 (ptr));
+        v[1] ^= METROHASH_CRC32_U64(v[0], read_u8 (ptr));
         v[1] ^= rotate_right((v[1] * k3) + v[0], 17) * k0;
     }
     
@@ -128,10 +136,10 @@ void metrohash128crc_2(const uint8_t * key, uint64_t len, uint32_t seed, uint8_t
 
         do
         {
-            v[0] ^= _mm_crc32_u64(v[0], read_u64(ptr)); ptr += 8;
-            v[1] ^= _mm_crc32_u64(v[1], read_u64(ptr)); ptr += 8;
-            v[2] ^= _mm_crc32_u64(v[2], read_u64(ptr)); ptr += 8;
-            v[3] ^= _mm_crc32_u64(v[3], read_u64(ptr)); ptr += 8;
+            v[0] ^= METROHASH_CRC32_U64(v[0], read_u64(ptr)); ptr += 8;
+            v[1] ^= METROHASH_CRC32_U64(v[1], read_u64(ptr)); ptr += 8;
+            v[2] ^= METROHASH_CRC32_U64(v[2], read_u64(ptr)); ptr += 8;
+            v[3] ^= METROHASH_CRC32_U64(v[3], read_u64(ptr)); ptr += 8;
         }
         while (ptr <= (end - 32));
 
@@ -157,19 +165,19 @@ void metrohash128crc_2(const uint8_t * key, uint64_t len, uint32_t seed, uint8_t
     
     if ((end - ptr) >= 4)
     {
-        v[1] ^= _mm_crc32_u64(v[0], read_u32(ptr)); ptr += 4;
+        v[1] ^= METROHASH_CRC32_U64(v[0], read_u32(ptr)); ptr += 4;
         v[1] ^= rotate_right((v[1] * k3) + v[0], 14) * k0;
     }
     
     if ((end - ptr) >= 2)
     {
-        v[0] ^= _mm_crc32_u64(v[1], read_u16(ptr)); ptr += 2;
+        v[0] ^= METROHASH_CRC32_U64(v[1], read_u16(ptr)); ptr += 2;
         v[0] ^= rotate_right((v[0] * k2) + v[1], 15) * k1;
     }
     
     if ((end - ptr) >= 1)
     {
-        v[1] ^= _mm_crc32_u64(v[0], read_u8 (ptr));
+        v[1] ^= METROHASH_CRC32_U64(v[0], read_u8 (ptr));
         v[1] ^= rotate_right((v[1] * k3) + v[0],  18) * k0;
     }
     
