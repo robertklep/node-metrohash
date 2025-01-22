@@ -10,7 +10,7 @@
         "xcode_settings" : {
           "MACOSX_DEPLOYMENT_TARGET" : "10.9",
           "OTHER_CFLAGS"             : [
-            "-std=c++14",
+            "-std=c++17",
             "-stdlib=libc++",
             "-Wno-unused-function",
             "-Wno-deprecated-declarations",
