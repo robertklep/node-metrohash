@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "bindings": "^1.5.0",
-    "nan": "^2.22.0",
+    "nan": "^2.25.0",
     "node-gyp": "^10.3.1"
   },
   "devDependencies": {

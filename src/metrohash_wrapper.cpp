@@ -158,4 +158,4 @@ NAN_MODULE_INIT(InitAll) {
     Nan::Set(target, name128, fn128);
 }
 
-NODE_MODULE(metrohash, InitAll)
+NAN_MODULE_WORKER_ENABLED(metrohash, InitAll)
